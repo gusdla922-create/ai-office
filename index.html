@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>달빛동화 스튜디오 - AI 오피스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF7E8;
+    --ink:#6b4a34;
+    --ink-soft:#9c7a5c;
+    --card:#FFFDF8;
+    --shadow: 0 6px 0 rgba(107,74,52,0.15);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 10% 10%, #FFE9C7 0%, transparent 40%),
+      radial-gradient(circle at 90% 0%, #FFD9EC 0%, transparent 35%),
+      var(--bg);
+    font-family:'Gowun Dodum','Jua',sans-serif;
+    color:var(--ink);
+  }
+  header{
+    text-align:center;
+    padding:28px 16px 10px;
+  }
+  header h1{
+    font-family:'Jua',sans-serif;
+    font-size:2.1rem;
+    margin:0;
+    letter-spacing:1px;
+    text-shadow: 2px 2px 0 #fff, 0 2px 6px rgba(107,74,52,0.15);
+  }
+  header p{
+    margin:8px 0 0;
+    color:var(--ink-soft);
+    font-size:1rem;
+  }
+  .app{
+    max-width:1220px;
+    margin:0 auto;
+    padding:10px 16px 60px;
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+  .map-wrap{
+    background:var(--card);
+    border-radius:28px;
+    box-shadow:var(--shadow);
+    border:3px solid #F3D9B1;
+    padding:20px;
+    overflow-x:auto;
+  }
+  .map{
+    position:relative;
+    width:1160px;
+    height:720px;
+    background:
+      repeating-linear-gradient(0deg, #FBEEDA, #FBEEDA 39px, #F6E4C8 40px),
+      repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(0,0,0,0.02) 40px);
+    border-radius:20px;
+    border:4px solid #E9C896;
+  }
+  .room{
+    position:absolute;
+    border-radius:18px;
+    border:3px solid rgba(107,74,52,0.18);
+    box-shadow: inset 0 0 0 6px rgba(255,255,255,0.35);
+  }
+  .room-label{
+    position:absolute;
+    top:10px;
+    left:14px;
+    font-family:'Jua',sans-serif;
+    font-size:1rem;
+    background:rgba(255,255,255,0.75);
+    padding:4px 10px;
+    border-radius:12px;
+    box-shadow:0 2px 0 rgba(107,74,52,0.1);
+  }
+  .deco{
+    position:absolute;
+    font-size:1.6rem;
+    opacity:0.9;
+    pointer-events:none;
+  }
+  .desk-icon{
+    position:absolute;
+    font-size:1.6rem;
+    pointer-events:none;
+  }
+  .ceo-room .ceo-tag{
+    position:absolute;
+    bottom:16px;
+    left:50%;
+    transform:translateX(-50%);
+    text-align:center;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    background:rgba(255,255,255,0.7);
+    padding:4px 10px;
+    border-radius:10px;
+  }
+
+  /* employee sprite */
+  .employee{
+    position:absolute;
+    width:70px;
+    height:92px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    cursor:pointer;
+    transition: left 1.8s ease, top 1.8s ease;
+    z-index:5;
+    user-select:none;
+  }
+  .employee.walking .avatar{
+    animation: bob 0.5s infinite alternate;
+  }
+  @keyframes bob{
+    from{ transform: translateY(0); }
+    to{ transform: translateY(-6px); }
+  }
+  .employee .avatar{
+    width:54px;
+    height:54px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.9rem;
+    background:#fff;
+    box-shadow:0 4px 0 rgba(107,74,52,0.2);
+    border:3px solid var(--emp-color, #FFB86B);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+  }
+  .employee:hover .avatar{
+    transform: translateY(-3px) scale(1.06);
+    box-shadow:0 6px 0 rgba(107,74,52,0.25);
+  }
+  .employee.selected .avatar{
+    box-shadow:0 0 0 4px #fff, 0 0 0 7px var(--emp-color,#FFB86B);
+  }
+  .employee .name-tag{
+    margin-top:4px;
+    font-family:'Jua',sans-serif;
+    font-size:0.75rem;
+    background:var(--emp-color,#FFB86B);
+    color:#fff;
+    padding:2px 8px;
+    border-radius:10px;
+    white-space:nowrap;
+  }
+  .bubble{
+    position:absolute;
+    bottom:100%;
+    left:50%;
+    transform:translate(-50%,6px);
+    margin-bottom:6px;
+    background:#fff;
+    border:2px solid var(--emp-color,#FFB86B);
+    border-radius:14px;
+    padding:6px 10px;
+    font-size:0.78rem;
+    white-space:nowrap;
+    opacity:0;
+    pointer-events:none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    box-shadow:0 3px 0 rgba(107,74,52,0.15);
+  }
+  .bubble::after{
+    content:"";
+    position:absolute;
+    top:100%;
+    left:50%;
+    transform:translateX(-50%);
+    border:6px solid transparent;
+    border-top-color:var(--emp-color,#FFB86B);
+  }
+  .bubble.show{
+    opacity:1;
+    transform:translate(-50%,0);
+  }
+
+  /* side panel */
+  .panel{
+    width:300px;
+    min-height:400px;
+    background:var(--card);
+    border-radius:24px;
+    border:3px solid #F3D9B1;
+    box-shadow:var(--shadow);
+    padding:22px;
+    position:sticky;
+    top:20px;
+  }
+  .panel-empty{
+    text-align:center;
+    color:var(--ink-soft);
+    padding:60px 10px;
+    font-size:0.95rem;
+    line-height:1.7;
+  }
+  .panel-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .panel-avatar{
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:2.1rem;
+    background:#fff;
+    border:3px solid var(--emp-color,#FFB86B);
+    box-shadow:0 4px 0 rgba(107,74,52,0.15);
+  }
+  .panel-name{
+    font-family:'Jua',sans-serif;
+    font-size:1.3rem;
+    margin:0;
+  }
+  .panel-role{
+    margin:2px 0 0;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+    background:#FFF1DA;
+    display:inline-block;
+    padding:2px 10px;
+    border-radius:10px;
+  }
+  .panel-section{
+    margin-top:18px;
+  }
+  .panel-section h4{
+    margin:0 0 6px;
+    font-size:0.8rem;
+    color:var(--ink-soft);
+    letter-spacing:0.5px;
+  }
+  .panel-status{
+    background:#FFF7E8;
+    border:2px dashed #F0D3A3;
+    border-radius:14px;
+    padding:10px 12px;
+    font-size:0.92rem;
+    min-height:24px;
+  }
+  .progress-wrap{
+    background:#F3E3C6;
+    border-radius:999px;
+    height:18px;
+    overflow:hidden;
+    box-shadow: inset 0 2px 3px rgba(107,74,52,0.15);
+  }
+  .progress-bar{
+    height:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg, #FFC773, var(--emp-color,#FFB86B));
+    transition: width 0.6s ease;
+  }
+  .progress-text{
+    margin-top:6px;
+    text-align:right;
+    font-size:0.85rem;
+    color:var(--ink-soft);
+  }
+  footer{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:0.8rem;
+    padding-bottom:30px;
+  }
+
+  @media (max-width:1200px){
+    .app{ justify-content:center; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌙 달빛동화 스튜디오</h1>
+  <p>2~4세 아이들을 위한 동화를 만드는, AI 친구들의 작은 사무실 ✨</p>
+</header>
+
+<div class="app">
+  <div class="map-wrap">
+    <div class="map" id="map"></div>
+  </div>
+
+  <aside class="panel" id="panel">
+    <div class="panel-empty" id="panelEmpty">
+      🐾<br>
+      직원을 클릭하면<br>
+      지금 뭘 하고 있는지 볼 수 있어요!
+    </div>
+    <div id="panelContent" style="display:none;">
+      <div class="panel-header">
+        <div class="panel-avatar" id="pAvatar"></div>
+        <div>
+          <p class="panel-name" id="pName"></p>
+          <span class="panel-role" id="pRole"></span>
+        </div>
+      </div>
+      <div class="panel-section">
+        <h4>지금 상태</h4>
+        <div class="panel-status" id="pStatus"></div>
+      </div>
+      <div class="panel-section">
+        <h4>지금 하는 일</h4>
+        <div class="panel-status" id="pTask"></div>
+      </div>
+      <div class="panel-section">
+        <h4>진행률</h4>
+        <div class="progress-wrap"><div class="progress-bar" id="pProgressBar" style="width:0%"></div></div>
+        <div class="progress-text" id="pProgressText">0%</div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<footer>매일 밤, 달빛 아래에서 새로운 동화가 태어납니다 🌙📖</footer>
+
+<script>
+(function(){
+
+  // ---------- 방(rooms) 배치 ----------
+  var ROOMS = [
+    { id:'plan',   label:'📋 기획실',      left:20,  top:20,  width:260, height:320, color:'#FFE0B2' },
+    { id:'draw',   label:'🎨 그림 작업실', left:300, top:20,  width:260, height:320, color:'#FFD3E4' },
+    { id:'sound',  label:'🎙️ 녹음 부스',   left:580, top:20,  width:260, height:320, color:'#D8ECC7' },
+    { id:'ceo',    label:'👑 대표실',      left:860, top:20,  width:260, height:320, color:'#E6D9F5' },
+    { id:'edit',   label:'✂️ 편집실',      left:20,  top:360, width:260, height:320, color:'#CFE6F7' },
+    { id:'check',  label:'🔍 검수실',      left:300, top:360, width:260, height:320, color:'#FFF2AE' },
+    { id:'break',  label:'☕ 탕비실',      left:580, top:360, width:540, height:320, color:'#F0DFC3' }
+  ];
+
+  function roomById(id){ return ROOMS.filter(function(r){return r.id===id;})[0]; }
+
+  // ---------- 직원(employees) ----------
+  var EMP = [
+    {
+      id:'haru', name:'하루', emoji:'🐰', role:'대본 작가', color:'#FF9F5A', roomId:'plan',
+      tasks:['다음 동화 대본 쓰는 중','새로운 주인공 이름 짓는 중','이야기 결말 다듬는 중','대사를 소리 내어 읽어보는 중'],
+      idleLines:['오늘은 어떤 이야기를 써볼까?','주인공 이름은... 토실이 어때?','음... 결말이 안 풀리네 ㅠㅠ','좋은 문장이 떠올랐어!'],
+      breakLines:['커피 마시러 가야지~ ☕','잠깐 머리 좀 식히고 올게요'],
+      returnLines:['다시 힘내서 써볼까!','좋은 생각이 났어요!']
+    },
+    {
+      id:'momo', name:'모모', emoji:'🐻', role:'그림 작가', color:'#FF7FB0', roomId:'draw',
+      tasks:['배경 그림 색칠하는 중','주인공 표정 그리는 중','장면 스케치 다듬는 중','색감 고르는 중'],
+      idleLines:['이 색깔 너무 예쁘다!','구름은 몽글몽글하게~','손목이 아파... 스트레칭 좀 해야지','이 그림 진짜 귀엽지 않아요?'],
+      breakLines:['잠깐 손 좀 풀고 올게요','달콤한 거 먹고 싶다 🍪'],
+      returnLines:['다시 그려볼까!','영감이 떠올랐어요!']
+    },
+    {
+      id:'sori', name:'소리', emoji:'🐥', role:'성우', color:'#7FC77F', roomId:'sound',
+      tasks:['주인공 목소리 녹음하는 중','효과음 녹음하는 중','대사 톤 맞춰보는 중','노래 파트 부르는 중'],
+      idleLines:['아~~ 에~~ 목 풀기 중','이번엔 더 귀엽게 해볼게요!','다시 녹음! NG났어요 ㅠㅠ','목소리 톤 완벽해요!'],
+      breakLines:['목캔디 하나 먹어야지','물 좀 마시고 올게요'],
+      returnLines:['목 다 풀었어요, 다시 시작!','좋아요, 이번엔 될 것 같아요!']
+    },
+    {
+      id:'cut', name:'컷', emoji:'🦊', role:'편집자', color:'#5FA8E0', roomId:'edit',
+      tasks:['영상 자막 편집하는 중','장면 이어붙이는 중','효과음 타이밍 맞추는 중','최종 렌더링 중'],
+      idleLines:['자막 타이밍 맞추는 중...','효과음 넣으면 더 재밌겠다','렌더링 오래 걸리네 ⏳','이 장면 진짜 귀엽다 ㅋㅋ'],
+      breakLines:['눈 좀 쉬어야겠어요','커피 리필하러 갑니다'],
+      returnLines:['다시 편집 시작!','좋은 컷이 나올 것 같아요'],
+    },
+    {
+      id:'check', name:'체크', emoji:'🐱', role:'눈높이 검수', color:'#E0A55F', roomId:'check',
+      tasks:['4세 눈높이로 대본 검수하는 중','그림이 무섭지 않은지 확인하는 중','어려운 단어 골라내는 중','최종 통과 여부 확인하는 중'],
+      idleLines:['이 단어는 너무 어려운데?','아이들이 무서워하지 않을까?','완벽해요! 통과! ✅','다시 한 번 확인해볼게요'],
+      breakLines:['잠깐 눈 감고 쉴게요','다과 좀 먹고 올게요 🍪'],
+      returnLines:['좋아요, 검수 재개할게요!','다시 꼼꼼히 볼게요']
+    }
+  ];
+
+  var SPRITE_W = 70, SPRITE_H = 92;
+
+  function deskPos(emp){
+    var r = roomById(emp.roomId);
+    return {
+      left: r.left + r.width/2 - SPRITE_W/2,
+      top:  r.top + r.height - SPRITE_H - 20
+    };
+  }
+
+  var breakRoom = roomById('break');
+  var BREAK_SLOTS = EMP.map(function(emp, i){
+    var count = EMP.length;
+    var gap = breakRoom.width / (count + 1);
+    return {
+      left: breakRoom.left + gap*(i+1) - SPRITE_W/2,
+      top:  breakRoom.top + breakRoom.height - SPRITE_H - 30
+    };
+  });
+
+  // ---------- 맵 그리기 ----------
+  var mapEl = document.getElementById('map');
+
+  ROOMS.forEach(function(r){
+    var div = document.createElement('div');
+    div.className = 'room' + (r.id==='ceo' ? ' ceo-room' : '');
+    div.style.left = r.left+'px';
+    div.style.top = r.top+'px';
+    div.style.width = r.width+'px';
+    div.style.height = r.height+'px';
+    div.style.background = r.color;
+
+    var label = document.createElement('div');
+    label.className = 'room-label';
+    label.textContent = r.label;
+    div.appendChild(label);
+
+    if(r.id === 'ceo'){
+      var crown = document.createElement('div');
+      crown.className = 'deco';
+      crown.style.left = (r.width/2-16)+'px';
+      crown.style.top = (r.height/2-10)+'px';
+      crown.textContent = '👑';
+      div.appendChild(crown);
+
+      var tag = document.createElement('div');
+      tag.className = 'ceo-tag';
+      tag.textContent = '대표님 자리 (오늘도 든든하게 응원 중)';
+      div.appendChild(tag);
+    }
+
+    if(r.id === 'break'){
+      var table = document.createElement('div');
+      table.className = 'deco';
+      table.style.fontSize = '2.4rem';
+      table.style.left = (r.width/2-20)+'px';
+      table.style.top = '30px';
+      table.textContent = '☕🍩';
+      div.appendChild(table);
+    }
+
+    mapEl.appendChild(div);
+  });
+
+  // ---------- 직원 스프라이트 ----------
+  var state = {}; // id -> {progress, taskIndex, status, selected}
+  var elMap = {};
+  var bubbleTimers = {};
+  var cycleTimers = {};
+
+  EMP.forEach(function(emp){
+    state[emp.id] = { progress: Math.floor(Math.random()*30)+5, taskIndex: 0, status:'working' };
+
+    var el = document.createElement('div');
+    el.className = 'employee';
+    el.style.setProperty('--emp-color', emp.color);
+    var pos = deskPos(emp);
+    el.style.left = pos.left+'px';
+    el.style.top = pos.top+'px';
+
+    var bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    el.appendChild(bubble);
+
+    var avatar = document.createElement('div');
+    avatar.className = 'avatar';
+    avatar.textContent = emp.emoji;
+    el.appendChild(avatar);
+
+    var tag = document.createElement('div');
+    tag.className = 'name-tag';
+    tag.textContent = emp.name;
+    el.appendChild(tag);
+
+    el.addEventListener('click', function(){ selectEmployee(emp.id); });
+
+    mapEl.appendChild(el);
+    elMap[emp.id] = { root: el, bubble: bubble };
+  });
+
+  function speak(emp, text){
+    var refs = elMap[emp.id];
+    if(!refs) return;
+    clearTimeout(bubbleTimers[emp.id]);
+    refs.bubble.textContent = text;
+    refs.bubble.classList.add('show');
+    bubbleTimers[emp.id] = setTimeout(function(){
+      refs.bubble.classList.remove('show');
+    }, 3200);
+  }
+
+  function randOf(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function randBetween(a,b){ return a + Math.random()*(b-a); }
+
+  // ---------- 상태 패널 ----------
+  var selectedId = null;
+  var panelEmpty = document.getElementById('panelEmpty');
+  var panelContent = document.getElementById('panelContent');
+
+  function selectEmployee(id){
+    if(selectedId && elMap[selectedId]) elMap[selectedId].root.classList.remove('selected');
+    selectedId = id;
+    elMap[id].root.classList.add('selected');
+    panelEmpty.style.display = 'none';
+    panelContent.style.display = 'block';
+    renderPanel();
+  }
+
+  function statusText(emp, st){
+    if(st.status === 'working') return emp.name+'(이)가 열심히 일하고 있어요! 💪';
+    if(st.status === 'walking') return emp.name+'(이)가 탕비실로 이동 중이에요 🚶';
+    if(st.status === 'break') return emp.name+'(이)가 탕비실에서 쉬고 있어요 ☕';
+    return '';
+  }
+
+  function renderPanel(){
+    if(!selectedId) return;
+    var emp = EMP.filter(function(e){return e.id===selectedId;})[0];
+    var st = state[selectedId];
+
+    document.getElementById('pAvatar').textContent = emp.emoji;
+    document.getElementById('pAvatar').style.borderColor = emp.color;
+    document.getElementById('pName').textContent = emp.name;
+    document.getElementById('pRole').textContent = emp.role;
+    document.getElementById('pStatus').textContent = statusText(emp, st);
+    document.getElementById('pTask').textContent = emp.tasks[st.taskIndex];
+
+    var pct = Math.min(100, Math.round(st.progress));
+    document.getElementById('pProgressBar').style.width = pct+'%';
+    document.getElementById('pProgressBar').style.setProperty('--emp-color', emp.color);
+    document.getElementById('pProgressText').textContent = pct+'%';
+  }
+
+  // ---------- 진행률 업데이트 ----------
+  setInterval(function(){
+    EMP.forEach(function(emp){
+      var st = state[emp.id];
+      if(st.status === 'working'){
+        st.progress += randBetween(2,7);
+        if(st.progress >= 100){
+          st.taskIndex = (st.taskIndex+1) % emp.tasks.length;
+          st.progress = randBetween(4,15);
+        }
+      }
+    });
+    if(selectedId) renderPanel();
+  }, 2600);
+
+  // ---------- 가끔 하는 말 (일하는 중) ----------
+  EMP.forEach(function(emp){
+    (function loopTalk(){
+      setTimeout(function(){
+        if(state[emp.id].status === 'working'){
+          speak(emp, randOf(emp.idleLines));
+        }
+        loopTalk();
+      }, randBetween(5000, 11000));
+    })();
+  });
+
+  // ---------- 탕비실 다녀오기 ----------
+  var slotIndexById = {};
+  EMP.forEach(function(emp, i){ slotIndexById[emp.id] = i; });
+
+  function goOnBreak(emp){
+    var st = state[emp.id];
+    st.status = 'walking';
+    elMap[emp.id].root.classList.add('walking');
+    speak(emp, randOf(emp.breakLines));
+
+    var slot = BREAK_SLOTS[slotIndexById[emp.id]];
+    elMap[emp.id].root.style.left = slot.left+'px';
+    elMap[emp.id].root.style.top = slot.top+'px';
+
+    if(selectedId===emp.id) renderPanel();
+
+    setTimeout(function(){
+      elMap[emp.id].root.classList.remove('walking');
+      st.status = 'break';
+      if(selectedId===emp.id) renderPanel();
+
+      var breakDuration = randBetween(4000, 8000);
+      setTimeout(function(){ backToDesk(emp); }, breakDuration);
+    }, 1850);
+  }
+
+  function backToDesk(emp){
+    var st = state[emp.id];
+    st.status = 'walking';
+    elMap[emp.id].root.classList.add('walking');
+    speak(emp, randOf(emp.returnLines));
+
+    var pos = deskPos(emp);
+    elMap[emp.id].root.style.left = pos.left+'px';
+    elMap[emp.id].root.style.top = pos.top+'px';
+
+    if(selectedId===emp.id) renderPanel();
+
+    setTimeout(function(){
+      elMap[emp.id].root.classList.remove('walking');
+      st.status = 'working';
+      if(selectedId===emp.id) renderPanel();
+      scheduleNextBreak(emp);
+    }, 1850);
+  }
+
+  function scheduleNextBreak(emp){
+    clearTimeout(cycleTimers[emp.id]);
+    cycleTimers[emp.id] = setTimeout(function(){
+      goOnBreak(emp);
+    }, randBetween(9000, 18000));
+  }
+
+  EMP.forEach(function(emp, i){
+    // 서로 다른 타이밍에 시작하도록 살짝 시간차를 둠
+    setTimeout(function(){ scheduleNextBreak(emp); }, i*1400);
+  });
+
+})();
+</script>
+</body>
+</html>
